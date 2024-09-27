@@ -10,7 +10,7 @@ OWNER = "LLM-Beetle" # Change to your org - don't forget to create a results and
 
 # For harness evaluations
 DEVICE = "cpu" # "cuda:0" if you add compute, for harness evaluations
-LIMIT = 20 # !!!! For testing, should be None for actual evaluations!!!
+LIMIT = None # !!!! For testing, should be None for actual evaluations!!!
 NUM_FEWSHOT = 0 # Change with your few shot for the Harness evaluations
 TASKS_HARNESS = ["LLM-Beetle/banking_finance", "LLM-Beetle/wikipedia_based_general_topics"]
 
