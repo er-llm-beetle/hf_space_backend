@@ -4,7 +4,8 @@ from huggingface_hub import HfApi
 
 # Info to change for your repository
 # ----------------------------------
-TOKEN = os.environ.get("HF_TOKEN") # A read/write token for your org
+# TOKEN = os.environ.get("HF_TOKEN") # A read/write token for your org
+TOKEN = os.environ.get("") # A read/write token for your org
 
 OWNER = "LLM-Beetle" # Change to your org - don't forget to create a results and request dataset
 
