@@ -4,7 +4,7 @@ import torch
 import re
 import pandas as pd
 
-from .utility import format_options
+from utility import format_options
 
 
 

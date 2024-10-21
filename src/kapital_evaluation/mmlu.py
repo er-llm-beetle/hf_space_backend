@@ -533,7 +533,7 @@ def handle_context_qa_score(actual_answer, predicted_answer, question):
 def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, write_out=True):
 
     # Hard coded for now
-    API = True
+    API = False
     GGUF = False
 
     # FIX IT FOR REAL CASE
@@ -593,6 +593,7 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
     elif GGUF:
         repo_id = 'bartowski/Llama-3.2-3B-Instruct-GGUF'
         model = 'Llama-3.2-3B-Instruct-Q4_0.gguf'
+        # model = model
 
         # repo_id = ''
         # model = 'unsloth.Q4_K_M.gguf'
@@ -747,6 +748,10 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
             "data": load_dataset("LLM-Beetle/Quad_benchmark_cqa_latest")["train"]
         },
     ]
+
+
+
+
 
 
 

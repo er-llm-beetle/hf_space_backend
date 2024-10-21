@@ -165,6 +165,7 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
         )
 
         answer = response.choices[0].message.content
+        print("API Answer:", answer)
 
         return answer
 
@@ -218,4 +219,5 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
         return generate_answer_from_api(messages, model)
     else:
         print("\nGenerating answer using HF Tokenizer...")
-        return generate_answer(prompt, tokenizer, model)
+        # return generate_answer(prompt, tokenizer, model)
+        return generate_answer(messages, tokenizer, model)

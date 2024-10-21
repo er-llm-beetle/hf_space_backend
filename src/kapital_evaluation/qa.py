@@ -278,6 +278,7 @@ def get_answer_qa(question, model, tokenizer=None, device=None, repo_id=None, ap
         )
 
         answer = response.choices[0].message.content
+        print("API Answer:", answer)
 
         return answer
 

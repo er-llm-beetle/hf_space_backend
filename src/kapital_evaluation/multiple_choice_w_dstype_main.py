@@ -1248,7 +1248,7 @@ def get_answer_multiple_choice_w_dstype(question, options, model, num_fewshot, d
 
 
     def generate_answer(conversation, tokenizer, model):
-        print("GENERATE ANSWER FROM HF MODEL")
+
         # Step 1: Prepare the conversation text using the tokenizer
         text_input = tokenizer.apply_chat_template(conversation, add_generation_prompt=True, tokenize=False)
         # print("\ntext_input:", text_input, '\n')
@@ -1380,13 +1380,13 @@ def get_answer_multiple_choice_w_dstype(question, options, model, num_fewshot, d
 
     # Return v3: # for api and hf and gguf versions 
     if gguf:
-        print("Generating answer using GGUF...")
+        print("\n\nGenerating answer using GGUF...")
         return generate_answer_from_gguf(messages, model, repo_id)
     elif api:
-        print("Generating answer using API...")
+        print("\n\nGenerating answer using API...")
         return generate_answer_from_api(messages, model)
     else:
-        print("Generating answer using HF Tokenizer...")
+        print("\n\nGenerating answer using HF Tokenizer...")
         return generate_answer(messages, tokenizer, model)
 
 
