@@ -465,7 +465,7 @@
 
 
 
-# ------------------ w API version ---------------------------
+# ------------------ w API version (with some additions) ---------------------------
 
 
 
@@ -479,6 +479,8 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM  # Use Seq2SeqLM f
 from tqdm import tqdm
 import torch
 
+# For general:
+
 # from src.kapital_evaluation.qa import get_answer_qa, calculate_bleu_score, calculate_rouge_score, calculate_levenshtein_score, get_evaluation_score
 # from src.kapital_evaluation.rag import get_answer_rag
 # from src.kapital_evaluation.multiple_choice_w_dstype_main import get_answer_multiple_choice_w_dstype, compare_answers
@@ -486,6 +488,7 @@ import torch
 # from src.kapital_evaluation.detect_model import detect_and_print_model_info
 
 
+# For local:
 
 from qa import get_answer_qa, calculate_bleu_score, calculate_rouge_score, calculate_levenshtein_score, get_evaluation_score
 from rag import get_answer_rag
@@ -502,7 +505,7 @@ def handle_qa_score(actual_answer, predicted_answer, question):
         calculate_bleu_score(actual_answer, predicted_answer) \
         + calculate_rouge_score(actual_answer, predicted_answer) \
         + calculate_levenshtein_score(actual_answer, predicted_answer) \
-        + 0.25 * get_evaluation_score(actual_answer, predicted_answer, question)
+        + 0.25 * int(float(get_evaluation_score(question, actual_answer, predicted_answer)))
     )
     return score
 
@@ -516,17 +519,22 @@ def handle_context_qa_score(actual_answer, predicted_answer, question):
         calculate_bleu_score(actual_answer, predicted_answer) \
         + calculate_rouge_score(actual_answer, predicted_answer) \
         + calculate_levenshtein_score(actual_answer, predicted_answer) \
-        + 0.25 * get_evaluation_score(actual_answer, predicted_answer, question)
+        + 0.25 * int(float(get_evaluation_score(actual_answer, predicted_answer, question)))
     )
     return score
 
 # def compare_answers(actual_answer: str, predicted_answer: str) -> int:
 #     return actual_answer.strip().lower() == predicted_answer.strip().lower()
 
+
+
+
+
 def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, write_out=True):
 
     # Hard coded for now
     API = False
+    GGUF = True
 
     # FIX IT FOR REAL CASE
     model_name = model
@@ -538,7 +546,8 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
     #     }
     # }
 
-    if not API:
+    if not API and not GGUF:
+
         # tokenizer = AutoTokenizer.from_pretrained(model, cache_dir='cache')
         # model = AutoModelForSeq2SeqLM.from_pretrained(model, cache_dir='cache').to("cpu")  # Changed to Seq2SeqLM
         
@@ -565,6 +574,8 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
         # print(f"Tokenizer: {tokenizer}")
         print(f"Model: {model}")
 
+
+        print(f"Starting HF Tokenizer Version for model: {model}")
         
 
 
@@ -577,7 +588,19 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
     
     elif API:
         model = 'gpt-4o-mini'
+        print(f"Starting API Version for model: {model}")
 
+    elif GGUF:
+        repo_id = 'bartowski/Llama-3.2-3B-Instruct-GGUF'
+        model = 'Llama-3.2-3B-Instruct-Q4_0.gguf'
+
+        # repo_id = ''
+        # model = 'unsloth.Q4_K_M.gguf'
+
+        print(f"Starting GGUF Version for model: {model}")
+
+
+    # Metadata:
 
     # v4 with dstype and w subtext
     datasets = [
@@ -822,24 +845,34 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
             if task_type == "mmlu":
                 if API:
                     predicted_answer = get_answer_multiple_choice_w_dstype(
-                        question=question, options=options, model=model, num_fewshot=0, dstype=dstype, api=True
+                        question=question, options=options, model=model, num_fewshot=0, dstype=dstype, api=True, gguf=False
+                    )
+                elif GGUF:
+                    predicted_answer = get_answer_multiple_choice_w_dstype(
+                        question=question, options=options, model=model, num_fewshot=0, dstype=dstype, api=False, gguf=True, repo_id=repo_id
                     )
                 else:
                     predicted_answer = get_answer_multiple_choice_w_dstype(
-                        question=question, options=options, model=model, num_fewshot=0, dstype=dstype, tokenizer=tokenizer, api=False
+                        question=question, options=options, model=model, num_fewshot=0, dstype=dstype, tokenizer=tokenizer, api=False, gguf=False
                     )
             elif task_type == "qa":
                 if API:
-                    predicted_answer = get_answer_qa(question, model)  # Removed tokenizer
+                    predicted_answer = get_answer_qa(question, model, api=True, gguf=False)  # Removed tokenizer
+                elif GGUF:
+                    predicted_answer = get_answer_qa(question, model, repo_id=repo_id, api=False, gguf=True)  # Removed tokenizer
                 else:
-                    predicted_answer = get_answer_qa(question, model, tokenizer)
+                    predicted_answer = get_answer_qa(question, model, tokenizer, api=False, gguf=False)
             elif task_type == "rag":
                 if API:
-                    predicted_answer = get_answer_rag(question, context, model)  # Removed tokenizer
+                    predicted_answer = get_answer_rag(question, context, model, api=True, gguf=False)  # Removed tokenizer
+                elif GGUF:
+                    predicted_answer = get_answer_rag(question, context, model, repo_id=repo_id, api=False, gguf=True)  # Removed tokenizer
                 else:
-                    predicted_answer = get_answer_rag(question, context, model, tokenizer)
+                    predicted_answer = get_answer_rag(question, context, model, tokenizer, api=False, gguf=False)
             else:
                 raise ValueError("Invalid task type")
+
+
 
             if task_type in ["mmlu", "mmlu_context"]:
                 score = compare_answers(correct_answer, predicted_answer)

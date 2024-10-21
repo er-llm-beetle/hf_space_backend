@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 
 
-def get_answer_multiple_choice_w_dstype(question, options, model, num_fewshot, dstype, context = None, tokenizer=None, api=False):
+def get_answer_multiple_choice_w_dstype(question, options, model, num_fewshot, dstype, context = None, tokenizer=None, api=False, gguf=False, repo_id=None):
 
     # generation_config = model.generation_config
     # generation_config.max_length = 1000
@@ -1335,8 +1335,57 @@ def get_answer_multiple_choice_w_dstype(question, options, model, num_fewshot, d
         return answer
 
 
-    return generate_answer(messages, tokenizer, model) if not api else  generate_answer_from_api(messages, model)
+    def generate_answer_from_gguf(messages, model, repo_id):
+        from llama_cpp import Llama
+        # import atexit
 
+        def main():
+            llm = Llama.from_pretrained(
+                # repo_id="gaianet/Nemotron-Mini-4B-Instruct-GGUF",
+                # filename="Nemotron-Mini-4B-Instruct-Q2_K.gguf",
+                # # filename="Nemotron-Mini-4B-Instruct-Q4_0.gguf",
+
+                repo_id = repo_id,
+                filename = model,
+                n_ctx=2048,
+            )
+
+            res = llm.create_chat_completion(
+                messages = messages,
+                temperature=0,
+                # max_tokens=300,
+            )
+
+             
+            # Extract the content from the response (checking that it's available)
+            try:
+                content = res['choices'][0]['message']['content']
+                print("content:", content)
+    
+                print("GGUF Answer:", content)
+            except KeyError:
+                print("Error: Unable to extract content from the response.")
+
+            print(f"repoId: {repo_id} and model: {model}")
+            return content
+
+        return main()
+
+
+
+    # return generate_answer(messages, tokenizer, model) if not api else  generate_answer_from_api(messages, model) # for api and hf version
+    # return main().generate_answer_from_gguf(messages, model, repo_id) if gguf else generate_answer(messages, tokenizer, model) if not api else generate_answer_from_api(messages, model) # for api and hf and gguf versions
+
+    # Return v3: # for api and hf and gguf versions 
+    if gguf:
+        print("Generating answer using GGUF...")
+        return generate_answer_from_gguf(messages, model, repo_id)
+    elif api:
+        print("Generating answer using API...")
+        return generate_answer_from_api(messages, model)
+    else:
+        print("Generating answer using HF Tokenizer...")
+        return generate_answer(messages, tokenizer, model)
 
 
 
