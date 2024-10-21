@@ -34,10 +34,12 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
 
     # Message version
     messages = [
-        {"role": "system", "content": "You are a retrieval-augmented answer generator AI in Azerbaijani. Use the provided context to generate a concise and accurate answer to the question, limited to 1-2 sentences and under 400 characters."},
+        {
+            "role": "system", 
+            "content": "You are a retrieval-augmented answer generator AI in Azerbaijani. Use the provided context to generate a concise and accurate answer to the question, limited to 1-2 sentences and under 400 characters.\n"},
         {
             "role": "user",
-            "content": f"Context: {context}\n\nQuestion: {question}\n\nAnswer:"
+            "content": f"Context\n: {context}\n\nQuestion\n: {question}\n\nAnswer:"
         }
     ]
 
@@ -143,14 +145,16 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
     def generate_answer_from_api(conversation, model):
         
         load_dotenv()
-        
+
+        httpx_client = httpx.Client(http2=True, verify=False)
+  
         OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY")
 
         # Initialize client for GPT 
         client_openai = OpenAI(
             # base_url=BASE_URL_LLM,
             api_key=OPENAI_API_KEY,
-            # http_client=httpx_client
+            http_client=httpx_client
         )
 
         response = client_openai.chat.completions.create(
@@ -187,13 +191,9 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
                 # max_tokens=300,
             )
 
-            print("RESSS" , res)
-             
             # Extract the content from the response (checking that it's available)
             try:
                 content = res['choices'][0]['message']['content']
-                print("content:", content)
-    
                 print("GGUF Answer:", content)
             except KeyError:
                 print("Error: Unable to extract content from the response.")
@@ -210,11 +210,12 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
 
     # Return v3: # for api and hf and gguf versions 
     if gguf:
-        print("Generating answer using GGUF...")
+        print("\nGenerating answer using GGUF...")
         return generate_answer_from_gguf(messages, model, repo_id)
     elif api:
-        print("Generating answer using API...")
-        return generate_answer_from_api(prompt, model)
+        print("\nGenerating answer using API...")
+        # return generate_answer_from_api(prompt, model)
+        return generate_answer_from_api(messages, model)
     else:
-        print("Generating answer using HF Tokenizer...")
+        print("\nGenerating answer using HF Tokenizer...")
         return generate_answer(prompt, tokenizer, model)

@@ -533,8 +533,8 @@ def handle_context_qa_score(actual_answer, predicted_answer, question):
 def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, write_out=True):
 
     # Hard coded for now
-    API = False
-    GGUF = True
+    API = True
+    GGUF = False
 
     # FIX IT FOR REAL CASE
     model_name = model

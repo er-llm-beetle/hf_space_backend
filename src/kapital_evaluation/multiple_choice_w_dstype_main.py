@@ -4,9 +4,9 @@ import torch
 import re, os
 import pandas as pd
 from openai import OpenAI
+import httpx
 
 from dotenv import load_dotenv
-
 
 
 
@@ -1313,6 +1313,8 @@ def get_answer_multiple_choice_w_dstype(question, options, model, num_fewshot, d
     def generate_answer_from_api(conversation, model):
         
         load_dotenv()
+    
+        httpx_client = httpx.Client(http2=True, verify=False)
         
         OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY")
 
@@ -1320,7 +1322,7 @@ def get_answer_multiple_choice_w_dstype(question, options, model, num_fewshot, d
         client_openai = OpenAI(
             # base_url=BASE_URL_LLM,
             api_key=OPENAI_API_KEY,
-            # http_client=httpx_client
+            http_client=httpx_client
         )
 
         response = client_openai.chat.completions.create(

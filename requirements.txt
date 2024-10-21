@@ -20,3 +20,4 @@ gradio
 bitsandbytes
 openai
 python-dotenv
+h2

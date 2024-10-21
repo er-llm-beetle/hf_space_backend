@@ -260,12 +260,14 @@ def get_answer_qa(question, model, tokenizer=None, device=None, repo_id=None, ap
         load_dotenv()
         
         OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY")
+    
+        httpx_client = httpx.Client(http2=True, verify=False)
 
         # Initialize client for GPT 
         client_openai = OpenAI(
             # base_url=BASE_URL_LLM,
             api_key=OPENAI_API_KEY,
-            # http_client=httpx_client
+            http_client=httpx_client
         )
 
         response = client_openai.chat.completions.create(
@@ -306,8 +308,6 @@ def get_answer_qa(question, model, tokenizer=None, device=None, repo_id=None, ap
             # Extract the content from the response (checking that it's available)
             try:
                 content = res['choices'][0]['message']['content']
-                print("content:", content)
-    
                 print("GGUF Answer:", content)
             except KeyError:
                 print("Error: Unable to extract content from the response.")
@@ -392,7 +392,6 @@ def get_evaluation_score(question: str, actual_answer: str, predicted_answer: st
 
     load_dotenv()
 
-    print("GPT EVAL:")
 
     BASE_URL_LLM = "https://integrate.api.nvidia.com/v1"
     MODEL_LLAMA_3_1_405B = "meta/llama-3.1-405b-instruct"
