@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-import re, httpx
+import re, httpx, os
 import pandas as pd
 
 # from src.kapital_evaluation.utility import format_options
@@ -97,7 +97,7 @@ def get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, nu
 
 
 
-    def generate_answer_from_api(conversation, model):
+    def generate_answer_from_api(messages, model):
         
         load_dotenv()
     
@@ -114,7 +114,7 @@ def get_answer_multiple_choice_w_subtype(question, options, model, tokenizer, nu
 
         response = client_openai.chat.completions.create(
             model=model,
-            messages=conversation,
+            messages=messages,
             # max_tokens=500,  
             temperature=0,  
         )
@@ -294,10 +294,10 @@ def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_tex
     # Adding each question and options to the prompt
     for entry in few_shot_examples:
         # Debugging: print the entry to see its structure
-        print(f"Entry: {entry}")
+        print(f"\nEntry: {entry}")
         
         # Check if entry is a dictionary and contains the expected keys
-        if isinstance(entry, dict) and "question" in entry and "options" in entry and "answer" in entry:
+        if isinstance(entry, dict):
             question = entry["question"]
             options = entry["options"]
             correct_answer = entry["answer"]

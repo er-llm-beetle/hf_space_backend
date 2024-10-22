@@ -6,6 +6,7 @@ import httpx
 from dotenv import load_dotenv
 from openai import OpenAI
 
+
 def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=False, repo_id=None):
     # prompt = (
     #     f"You are an answer generator AI in Azerbaijani. Your task is to generate concise answers based on the provided context and the given question.\n"
@@ -39,7 +40,7 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
             "content": "You are a retrieval-augmented answer generator AI in Azerbaijani. Use the provided context to generate a concise and accurate answer to the question, limited to 1-2 sentences and under 400 characters.\n"},
         {
             "role": "user",
-            "content": f"Context\n: {context}\n\nQuestion\n: {question}\n\nAnswer:"
+            "content": f"Context:\n{context}\n\nQuestion:\n{question}\n\nAnswer:"
         }
     ]
 
@@ -142,7 +143,7 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
 
 
 
-    def generate_answer_from_api(conversation, model):
+    def generate_answer_from_api(messages, model):
         
         load_dotenv()
 
@@ -159,7 +160,7 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
 
         response = client_openai.chat.completions.create(
             model=model,
-            messages=conversation,
+            messages=messages,
             # max_tokens=500,  
             temperature=0,  
         )
@@ -187,7 +188,7 @@ def get_answer_rag(question, context, model, tokenizer=None, api=False, gguf=Fal
             )
 
             res = llm.create_chat_completion(
-                messages = messages,
+                messages=messages,
                 temperature=0,
                 # max_tokens=300,
             )

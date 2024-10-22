@@ -481,19 +481,19 @@ import torch
 
 # For general:
 
-# from src.kapital_evaluation.qa import get_answer_qa, calculate_bleu_score, calculate_rouge_score, calculate_levenshtein_score, get_evaluation_score
-# from src.kapital_evaluation.rag import get_answer_rag
-# from src.kapital_evaluation.multiple_choice_w_dstype_main import get_answer_multiple_choice_w_dstype, compare_answers
-# # from src.kapital_evaluation.multiple_choice_w_subtype import get_answer_multiple_choice_w_subtype, dynamic_multiple_choice_subtype_base_prompt
-# from src.kapital_evaluation.detect_model import detect_and_print_model_info
+from src.kapital_evaluation.qa import get_answer_qa, calculate_bleu_score, calculate_rouge_score, calculate_levenshtein_score, get_evaluation_score
+from src.kapital_evaluation.rag import get_answer_rag
+from src.kapital_evaluation.multiple_choice_w_dstype_main import get_answer_multiple_choice_w_dstype, compare_answers
+# from src.kapital_evaluation.multiple_choice_w_subtype import get_answer_multiple_choice_w_subtype, dynamic_multiple_choice_subtype_base_prompt
+from src.kapital_evaluation.detect_model import detect_and_print_model_info
 
 
 # For local:
 
-from qa import get_answer_qa, calculate_bleu_score, calculate_rouge_score, calculate_levenshtein_score, get_evaluation_score
-from rag import get_answer_rag
-from multiple_choice_w_dstype_main import get_answer_multiple_choice_w_dstype, compare_answers
-from detect_model import detect_and_print_model_info
+# from qa import get_answer_qa, calculate_bleu_score, calculate_rouge_score, calculate_levenshtein_score, get_evaluation_score
+# from rag import get_answer_rag
+# from multiple_choice_w_dstype_main import get_answer_multiple_choice_w_dstype, compare_answers
+# from detect_model import detect_and_print_model_info
 
 
 

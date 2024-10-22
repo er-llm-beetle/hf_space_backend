@@ -9,86 +9,8 @@ import logging
 from dotenv import load_dotenv
 import httpx
 
-
-
-# def get_answer_qa(question, model, tokenizer, device=None):
-#     # Set device to GPU if available, otherwise use CPU
-#     if device is None:
-#         device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-#     prompt = (
-#         f"You are an AI designed to generate concise answers in Azerbaijani based on the following questions.\n"
-#         f"Provide a clear and accurate answer in Azerbaijani, limited to 1-2 sentences and under 400 characters.\n\n"
-#         f"Question in Azerbaijani:\n{question}\n\n"
-#         f"Answer in Azerbaijani:"
-#     )
-
-#     # Tokenize the prompt and move tensors to the correct device
-#     encoding = tokenizer(prompt, return_tensors="pt").to(device)
-
-#     # Disable gradient calculation for inference
-#     with torch.no_grad():
-#         outputs = model.generate(
-#             input_ids=encoding.input_ids,
-#             attention_mask=encoding.attention_mask,
-#             max_new_tokens=300,  # Lowered max tokens for concise answers
-#             pad_token_id=tokenizer.pad_token_id,
-#         )
-
-#     # Decode the predicted answer
-#     predicted_answer = tokenizer.decode(outputs[0])
-#     print("\npredicted_answer_qa:", predicted_answer, "\n")
-
-#     # REGULAR EXPRESSION VERSION:
-#     # Use regular expression to extract everything before the last occurrence of "<|eot_id|>"
-#     text_before_last_eot = re.findall(r'(.*)<\|eot_id\|>', predicted_answer)[-1]
-#     print("\ntext_before_last_eot:", text_before_last_eot, "\n\n")
-    
-#     return text_before_last_eot
-
-
-
-
-
-
-
-
-# def get_answer_qa(question, model, tokenizer, device=None):
-#     # Set device to GPU if available, otherwise use CPU
-#     if device is None:
-#         device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-#     # Best practice prompt, following conventions of OpenAI, LLaMA, DeepEval, etc.
-#     prompt = (
-#         f"You are a knowledgeable and concise AI assistant, answering questions in Azerbaijani.\n"
-#         # f"Answer the following question accurately and concisely in Azerbaijani. "
-#         f"Keep the answer limited to 1-2 sentences, factual, and no more than 400 characters.\n\n"
-#         f"Question: {question}\n\n"
-#         f"Answer in Azerbaijani:"
-#     )
-
-#     # Tokenize the prompt and move tensors to the correct device
-#     encoding = tokenizer(prompt, return_tensors="pt").to(device)
-
-#     # Disable gradient calculation for inference
-#     with torch.no_grad():
-#         outputs = model.generate(
-#             input_ids=encoding.input_ids,
-#             attention_mask=encoding.attention_mask,
-#             max_new_tokens=300,  # Lowered max tokens for concise answers
-#             pad_token_id=tokenizer.pad_token_id,
-#         )
-
-
-#     predicted_answer = tokenizer.decode(outputs[0])
-#     print("\npredicted_answer_qa:", predicted_answer, "\n")
-
-#     # REGULAR EXPRESSION VERSION:
-#     # Use regular expression to extract everything before the last occurrence of "<|eot_id|>"
-#     text_before_last_eot = re.findall(r'(.*)<\|eot_id\|>', predicted_answer)[-1]
-#     print("\ntext_before_last_eot:", text_before_last_eot, "\n\n")
-    
-#     return text_before_last_eot
+# from src.kapital_evaluation.utility import format_options
+# from utility import format_options
 
 
 
@@ -96,114 +18,28 @@ import httpx
 
 # Best worked for now (with 5 shot incl.):
 
-def get_answer_qa(question, model, tokenizer=None, device=None, repo_id=None, api=False, gguf=False):
+def get_answer_rag_w_subtype(question, context, model, base_prompt=None, tokenizer=None, device=None, repo_id=None, api=False, gguf=False):
     # Set device to GPU if available, otherwise use CPU
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # Few-shot messages
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a knowledgeable and concise AI assistant, answering questions in Azerbaijani. "
-                       "Provide factual answers that are limited to 1-2 sentences, no more than 400 characters."
-        },
-        {
-            "role": "user",
-            "content": "İqtisadi göstəricilər nədir və niyə əhəmiyyətlidir?"
-        },
-        {
-            "role": "assistant",
-            "content": "İqtisadi göstəricilər - ölkənin və ya şirkətin iqtisadi vəziyyətini qiymətləndirmək üçün istifadə olunan statistik məlumatlardır."
-        },
+
+
+    conversation = []
+
+    conversation.append(
+        base_prompt
+    )
+    conversation.append(
         {
             "role": "user",
-            "content": "Ekonometriya iqtisadiyyatda hansı məsələlərin həllinə kömək edir?"
-        },
-        {
-            "role": "assistant",
-            "content": "Ekonometriya iqtisadiyyatda müxtəlif məsələlərin, o cümlədən qiymət və gəlirin təyin edilməsi, istehsal və tələbin proqnozlaşdırılması, iqtisadi böhranların analizi və s. kimi məsələlərin həllinə kömək edir."
-        },
-        {
-            "role": "user",
-            "content": "Auditın məqsədi nədir?"
-        },
-        {
-            "role": "assistant",
-            "content": "Auditın məqsədi müəssisənin maliyyə hesabatlarının doğruluğunu və etibarlılığını yoxlamaqdır."
-        },
-        {
-            "role": "user",
-            "content": "Kredit kartı ilə alış-veriş etməyin faydaları nələrdir?"
-        },
-        {
-            "role": "assistant",
-            "content": "Kredit kartı ilə alış-veriş edərkən sizə müxtəlif bonuslar və endirimlər təklif olunur, bu da sizin alış-verişinizi daha sərfəli edir."
-        },
-        {
-            "role": "user",
-            "content": "Müştəri rəyləri nə üçün vacibdir?"
-        },
-        {
-            "role": "assistant",
-            "content": "Müştəri rəyləri vacibdir, çünki onlar bizə müştərilərimizin məhsullarımız və xidmətlərimiz barədə nə düşündüklərini öyrənməyə imkan verir."
-        },
-        # New user question
-        {
-            "role": "user",
-            "content": question
+            "content": f"Context:\n{context}\n\nQuestion:\n{question}\n\nAnswer:"
         }
-    ]
+    )
 
 
-    """
-    # Convert messages into a dialogue-style prompt for tokenization
-    # dialogue_prompt = "".join([f"{message['role']}: {message['content']}\n" for message in messages])
-
-    # Applying the chat template using the tokenizer's method
-    dialogue_prompt = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
 
 
-    # Tokenize the prompt and move tensors to the correct device
-    encoding = tokenizer(dialogue_prompt, return_tensors="pt").to(device)
-
-    # Disable gradient calculation for inference
-    with torch.no_grad():
-        outputs = model.generate(
-            input_ids=encoding.input_ids,
-            attention_mask=encoding.attention_mask,
-            max_new_tokens=300,  # Limit tokens for concise answers
-            pad_token_id=tokenizer.pad_token_id,
-        )
-
-    predicted_answer = tokenizer.decode(outputs[0])
-    print("\npredicted_answer_qa:", predicted_answer, "\n")
-
-    # # REGULAR EXPRESSION VERSION:
-    # # Use regular expression to extract everything before the last occurrence of "<|eot_id|>"
-    # # text_before_last_eot = re.findall(r'(.*)<\|(?:eot_id|im_end)\|>', predicted_answer)[-1]
-    # # text_before_last_eot = re.findall(r'(.*)<\|(eot_id|im_end|finish)\|>', predicted_answer)[-1]
-
-    # v2:
-    # text_before_last_eot = [match[0] for match in re.findall(r'(.*)<\|(eot_id|im_end|finish|endoftext)\|>', predicted_answer)][-1]
-    # print("\ntext_before_last_eot:", text_before_last_eot, "\n\n")
-    
-    # return text_before_last_eot
-
-    # v3:
-    match = re.findall(r'(.*)<\|(eot_id|im_end|finish|endoftext)\|>', predicted_answer)
-    
-    # Assuming you want the first part of the tuple (e.g., 'C') from the result
-    if match:
-        text_before_last_eot = match[-1][0]  # Get the first part (the answer letter)
-    else:
-        text_before_last_eot = ''  # No match found
-    
-    # Step 6: Print and return the final answer
-    print("\npredicted_answer_2 :", text_before_last_eot, '\n')
-    return text_before_last_eot
-
-    """
 
 
     def generate_answer(messages, tokenizer, model):
@@ -255,6 +91,7 @@ def get_answer_qa(question, model, tokenizer=None, device=None, repo_id=None, ap
         return text_before_last_eot
 
 
+
     def generate_answer_from_api(messages, model):
         
         load_dotenv()
@@ -285,6 +122,7 @@ def get_answer_qa(question, model, tokenizer=None, device=None, repo_id=None, ap
 
 
     def generate_answer_from_gguf(messages, model, repo_id):
+        
         from llama_cpp import Llama
         # import atexit
 
@@ -326,50 +164,13 @@ def get_answer_qa(question, model, tokenizer=None, device=None, repo_id=None, ap
     # Return v3: # for api and hf and gguf versions 
     if gguf:
         print("Generating answer using GGUF...")
-        return generate_answer_from_gguf(messages, model, repo_id)
+        return generate_answer_from_gguf(conversation, model, repo_id)
     elif api:
         print("Generating answer using API...")
-        return generate_answer_from_api(messages, model)
+        return generate_answer_from_api(conversation, model)
     else:
         print("Generating answer using HF Tokenizer...")
-        return generate_answer(messages, tokenizer, model)
-
-
-
-
-
-
-
-# def get_answer_qa(question, model, tokenizer, device=None):
-#     # Set device to GPU if available, otherwise use CPU
-#     if device is None:
-#         device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-#     # Construct the chat-style input
-#     chat_template = [
-#         {"role": "system", "content": "You are an AI designed to generate concise answers in Azerbaijani. Provide a clear and accurate answer in Azerbaijani, limited to 1-2 sentences and under 400 characters."},
-#         {"role": "user", "content": f"Question in Azerbaijani:\n{question}\n\n"},
-#         {"role": "assistant", "content": "Answer in Azerbaijani:"}
-#     ]
-    
-#     # Convert chat template into a format that the model can use
-#     prompt = tokenizer(chat_template, return_tensors="pt", padding=True).to(device)
-
-#     # Disable gradient calculation for inference
-#     with torch.no_grad():
-#         outputs = model.generate(
-#             input_ids=prompt.input_ids,
-#             attention_mask=prompt.attention_mask,
-#             max_new_tokens=300,  # Limit the response length
-#             pad_token_id=tokenizer.pad_token_id,
-#         )
-
-#     # Decode the predicted answer
-#     predicted_answer = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
-#     print("\npredicted_answer_qa:", predicted_answer, "\n")
-
-#     return predicted_answer
-
+        return generate_answer(conversation, tokenizer, model)
 
 
 
@@ -513,6 +314,72 @@ def calculate_levenshtein_score(actual_answer: str, predicted_answer: str) -> in
 
     print('levenshtein:', 25 * (1 - (Levenshtein.distance(actual_answer, predicted_answer) / max_len)))
     return 25 * (1 - (Levenshtein.distance(actual_answer, predicted_answer) / max_len))
+
+
+
+
+
+
+
+
+
+
+def dynamic_rag_subtype_base_prompt(dataset, few_shot=5, subtype_text='You are an AI designed to answer questions in Azerbaijani.', dstype='mc'):
+    print("dataset base qa:", dataset)
+
+
+    # Limit to the specified number of examples
+    few_shot_examples = [dataset[i] for i in range(min(few_shot, len(dataset)))]
+
+    # Convert Hugging Face Dataset to list of dictionaries
+    # dataset = dataset.to_dict(orient='records')  # If this doesn't work, try
+    # dataset.to_pandas().to_dict(orient='records')
+
+    # Limit to the specified number of examples
+    # few_shot_examples = dataset[:few_shot]
+    
+    # Initialize the messages list with system instruction
+    messages = [
+        {
+            "role": "system",
+            "content": subtype_text
+        }
+    ]
+
+    # Adding each question and options to the prompt
+    for entry in few_shot_examples:
+        # Debugging: print the entry to see its structure
+        print(f"Entry: {entry}")
+        
+        # Check if entry is a dictionary and contains the expected keys
+        if isinstance(entry, dict):
+            question = entry["question"]
+            context = entry["context"]
+            correct_answer = entry["answer"]
+
+
+            {
+                "role": "user",
+                "content": "Auditın məqsədi nədir?"
+            },
+            {
+                "role": "assistant",
+                "content": "Auditın məqsədi müəssisənin maliyyə hesabatlarının doğruluğunu və etibarlılığını yoxlamaqdır."
+            },
+
+            messages.append({
+                "role": "user",
+                "content": f"Context:\n{context}\n\nQuestion:\n{question}\n\nAnswer:"
+            })
+            messages.append({
+                "role": "assistant",
+                "content": correct_answer
+            })
+        else:
+            print(f"Invalid entry format: {entry}")
+
+    return messages
+
 
 
 

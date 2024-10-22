@@ -10,7 +10,7 @@ def format_options(options, dstype):
         return formatted_options
     
 
-    elif '_kmc' in dstype: # check it
+    elif 'kmc' in dstype: # check it
         cleaned_text = options.replace("' ", "',")
 
         # Convert the string to a Python list

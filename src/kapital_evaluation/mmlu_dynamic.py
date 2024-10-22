@@ -14,6 +14,8 @@ import torch
 # from src.kapital_evaluation.rag import get_answer_rag
 # from src.kapital_evaluation.multiple_choice_w_dstype_main import get_answer_multiple_choice_w_dstype, compare_answers
 # # from src.kapital_evaluation.multiple_choice_w_subtype import get_answer_multiple_choice_w_subtype, dynamic_multiple_choice_subtype_base_prompt
+# from src.kapital_evaluation.qa_w_subtype import get_answer_qa_w_subtype, dynamic_qa_subtype_base_prompt
+# from src.kapital_evaluation.rag_w_subtype import get_answer_rag_w_subtype, dynamic_rag_subtype_base_prompt
 # from src.kapital_evaluation.detect_model import detect_and_print_model_info
 
 
@@ -23,6 +25,8 @@ from qa import get_answer_qa, calculate_bleu_score, calculate_rouge_score, calcu
 from rag import get_answer_rag
 from multiple_choice_w_dstype_main import get_answer_multiple_choice_w_dstype, compare_answers
 from multiple_choice_w_subtype import get_answer_multiple_choice_w_subtype, compare_answers, dynamic_multiple_choice_subtype_base_prompt
+from qa_w_subtype import get_answer_qa_w_subtype, dynamic_qa_subtype_base_prompt
+from rag_w_subtype import get_answer_rag_w_subtype, dynamic_rag_subtype_base_prompt
 from detect_model import detect_and_print_model_info
 
 
@@ -251,7 +255,7 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
             "task_type": "qa",
             "dstype": "qa",
             "group": "economics",
-            "subtext": "",
+            "subtext": "You are a knowledgeable and concise AI assistant, answering questions in Azerbaijani. Provide factual answers that are limited to 1-2 sentences, no more than 400 characters.",
             "train_data": load_dataset("Emirrv/ds_LLM_generated_latest_qa")["train"],
             "test_data": load_dataset("Emirrv/ds_LLM_generated_latest_qa")["test"],
         },
@@ -259,7 +263,7 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
             "task_type": "rag",
             "dstype": "cqa",
             "group": "context",
-            "subtext": "",
+            "subtext": "You are a retrieval-augmented answer generator AI in Azerbaijani. Use the provided context to generate a concise and accurate answer to the question, limited to 1-2 sentences and under 400 characters.",
             "train_data": load_dataset("Emirrv/ds_Quad_benchmark_latest_cqa")["train"],
             "test_data": load_dataset("Emirrv/ds_Quad_benchmark_latest_cqa")["test"],
         },
@@ -312,13 +316,29 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
         correct_count = 0
 
 
-        # base_prompt_mmlu = dynamic_multiple_choice_base_prompt(dataset=data, few_shot=5)
-        base_prompt_subtype_mmlu = dynamic_multiple_choice_subtype_base_prompt(
-            dataset=test_data, 
-            few_shot=5, 
-            subtype_text=dataset["subtext"],
-            dstype=dstype
-        )
+        if task_type == 'mmlu':
+            # base_prompt_mmlu = dynamic_multiple_choice_base_prompt(dataset=data, few_shot=5)
+            base_prompt_subtype_mmlu = dynamic_multiple_choice_subtype_base_prompt(
+                dataset=test_data, 
+                few_shot=5, 
+                subtype_text=dataset["subtext"],
+                dstype=dstype
+            )
+        elif task_type == 'qa':
+            base_prompt_subtype_qa = dynamic_qa_subtype_base_prompt(
+                dataset=test_data, 
+                few_shot=5, 
+                subtype_text=dataset["subtext"],
+                dstype=dstype
+            )
+        elif task_type == 'rag':
+            base_prompt_subtype_rag = dynamic_rag_subtype_base_prompt(
+                dataset=test_data, 
+                few_shot=5, 
+                subtype_text=dataset["subtext"],
+                dstype=dstype
+            )
+
 
         for i in tqdm(range(total_limit), desc=f'Evaluating task_type: {task_type} - dstype: {dstype}'):
             # question = data['question'][i] if data['question'][i] else None
@@ -382,14 +402,16 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
                     )
             elif task_type == "qa":
                 if API:
-                    predicted_answer = get_answer_qa(question, model, api=True, gguf=False)  # Removed tokenizer
+                    # predicted_answer = get_answer_qa(question, model, api=True, gguf=False)  # Removed tokenizer
+                    predicted_answer = get_answer_qa_w_subtype(question, model, base_prompt=base_prompt_subtype_qa, api=True, gguf=False)  # Removed tokenizer
                 elif GGUF:
                     predicted_answer = get_answer_qa(question, model, repo_id=repo_id, api=False, gguf=True)  # Removed tokenizer
                 else:
                     predicted_answer = get_answer_qa(question, model, tokenizer, api=False, gguf=False)
             elif task_type == "rag":
                 if API:
-                    predicted_answer = get_answer_rag(question, context, model, api=True, gguf=False)  # Removed tokenizer
+                    # predicted_answer = get_answer_rag(question, context, model, api=True, gguf=False)  # Removed tokenizer
+                    predicted_answer = get_answer_rag_w_subtype(question, context, model, base_prompt=base_prompt_subtype_rag, api=True, gguf=False)  # Removed tokenizer
                 elif GGUF:
                     predicted_answer = get_answer_rag(question, context, model, repo_id=repo_id, api=False, gguf=True)  # Removed tokenizer
                 else:
