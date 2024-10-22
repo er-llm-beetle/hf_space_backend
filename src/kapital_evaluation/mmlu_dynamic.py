@@ -133,7 +133,7 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
 
     # Metadata:
 
-    # v4 with dstype and w subtext
+    # v4.1 with dstype and w subtext
     datasets = [
         {
             "task_type": "mmlu",
@@ -252,8 +252,8 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
             "dstype": "qa",
             "group": "economics",
             "subtext": "",
-            "train_data": load_dataset("Emirrv/LLM_generated_latest_qa")["train"],
-            "test_data": load_dataset("Emirrv/LLM_generated_latest_qa")["test"],
+            "train_data": load_dataset("Emirrv/ds_LLM_generated_latest_qa")["train"],
+            "test_data": load_dataset("Emirrv/ds_LLM_generated_latest_qa")["test"],
         },
         {
             "task_type": "rag",
@@ -314,7 +314,10 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
 
         # base_prompt_mmlu = dynamic_multiple_choice_base_prompt(dataset=data, few_shot=5)
         base_prompt_subtype_mmlu = dynamic_multiple_choice_subtype_base_prompt(
-            dataset=data, few_shot=5
+            dataset=test_data, 
+            few_shot=5, 
+            subtype_text=dataset["subtext"],
+            dstype=dstype
         )
 
         for i in tqdm(range(total_limit), desc=f'Evaluating task_type: {task_type} - dstype: {dstype}'):

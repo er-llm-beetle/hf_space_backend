@@ -553,12 +553,12 @@ def evaluate(model, dtype, tasks, num_fewshot, batch_size, device, limit=2, writ
         
 
         # Directory where you saved the model (for local main testing)
-        save_directory = "/Users/rahimovamir/Downloads/huggingface_llm/OpenLLM-Azerbaijani-Backend/llama_3.2_1b_instruct_model"
+        # save_directory = "/Users/rahimovamir/Downloads/huggingface_llm/OpenLLM-Azerbaijani-Backend/llama_3.2_1b_instruct_model"
         # save_directory = "/Users/rahimovamir/Downloads/huggingface_llm/OpenLLM-Azerbaijani-Backend/Qwen2.5-0.5B-Instruct_model"
         # save_directory = "/Users/rahimovamir/Downloads/huggingface_llm/OpenLLM-Azerbaijani-Backend/Phi-3.5-mini-instruct_model"
         # save_directory = "/Users/rahimovamir/Downloads/huggingface_llm/OpenLLM-Azerbaijani-Backend/Llama3.1-elm-turbo-3B-instruct_model"
 
-        # save_directory = model_name
+        save_directory = model_name
 
         # Load the model and tokenizer from the local directory
         # model = AutoModelForCausalLM.from_pretrained(save_directory, cache_dir='cache')

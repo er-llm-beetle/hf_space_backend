@@ -195,8 +195,8 @@ def compare_answers(actual_answer: str, predicted_answer: str) -> int:
     
     # return 1 if actual_answer.lower() == predicted_answer.lower() else 0 # v1
     
-    # print("actual_answer:", actual_answer)
-    # print("predicted_answer:", predicted_answer)
+    print("actual_answer:", actual_answer)
+    print("predicted_answer:", predicted_answer)
     
 
     if pd.notna(predicted_answer) and isinstance(predicted_answer, str) and predicted_answer.strip():
@@ -208,8 +208,8 @@ def compare_answers(actual_answer: str, predicted_answer: str) -> int:
         return 0
 
     if matched_predicted and matched_predicted.group(1) is not None and matched_predicted.group(1) != "":
-        # print("matched_predicted:", matched_predicted.group(1).lower())
-        # print('\n\n')
+        print("matched_predicted:", matched_predicted.group(1).lower())
+        print('\n\n')
     
         return 1 if actual_answer.lower() == matched_predicted.group(1).lower() else 0
     else:
@@ -226,22 +226,13 @@ def compare_answers(actual_answer: str, predicted_answer: str) -> int:
 
 
 # ------------------------------
+"""
 
 
 def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_text='You are an AI designed to answer questions in Azerbaijani. You are an AI tasked with selecting the most accurate answer in Azerbaijani based on a given question. Choose the single letter (A, B, C, D) that best answers the question. Respond with only the letter of the chosen answer, without any additional text.', dstype='mc'):
-    """
-    This function constructs a prompt for a dynamic multiple-choice task with few-shot examples.
     
-    Parameters:
-    - dataset: List of dictionaries containing question data.
-    - few_shot: Number of few-shot examples to include in the prompt (default is 5).
-    - subtype_text: Text describing the task (default is the provided description in Azerbaijani).
-    - dstype: Type of dataset ('mc' for multiple-choice).
+    print("dataset base:", dataset)
 
-    Returns:
-    - messages: List of messages representing the system and user interactions for the prompt.
-    """
-    
     # Limit to the specified number of examples
     few_shot_examples = dataset[:few_shot]
     
@@ -255,9 +246,9 @@ def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_tex
 
     # Adding each question and options to the prompt
     for entry in few_shot_examples:
-        question = entry.get("question")
-        options = entry.get("options", [])
-        correct_answer = entry.get("correct_answer")
+        question = entry["question"]
+        options = entry["options"]
+        correct_answer = entry["answer"]
         
         # Ensure the format of the options is correct
         formatted_options = format_options(options, dstype)
@@ -274,4 +265,56 @@ def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_tex
 
     return messages
 
+"""
 
+
+
+def dynamic_multiple_choice_subtype_base_prompt(dataset, few_shot=5, subtype_text='You are an AI designed to answer questions in Azerbaijani...', dstype='mc'):
+    print("dataset base:", dataset)
+
+
+    # Limit to the specified number of examples
+    few_shot_examples = [dataset[i] for i in range(min(few_shot, len(dataset)))]
+
+    # Convert Hugging Face Dataset to list of dictionaries
+    # dataset = dataset.to_dict(orient='records')  # If this doesn't work, try
+    # dataset.to_pandas().to_dict(orient='records')
+
+    # Limit to the specified number of examples
+    # few_shot_examples = dataset[:few_shot]
+    
+    # Initialize the messages list with system instruction
+    messages = [
+        {
+            "role": "system",
+            "content": subtype_text
+        }
+    ]
+
+    # Adding each question and options to the prompt
+    for entry in few_shot_examples:
+        # Debugging: print the entry to see its structure
+        print(f"Entry: {entry}")
+        
+        # Check if entry is a dictionary and contains the expected keys
+        if isinstance(entry, dict) and "question" in entry and "options" in entry and "answer" in entry:
+            question = entry["question"]
+            options = entry["options"]
+            correct_answer = entry["answer"]
+            
+            # Ensure the format of the options is correct
+            formatted_options = format_options(options, dstype)
+            
+            # Append the user prompt and the assistant's correct answer
+            messages.append({
+                "role": "user",
+                "content": f"Question:\n{question}\nOptions:\n{formatted_options}\n\nAnswer:"
+            })
+            messages.append({
+                "role": "assistant",
+                "content": correct_answer
+            })
+        else:
+            print(f"Invalid entry format: {entry}")
+
+    return messages
